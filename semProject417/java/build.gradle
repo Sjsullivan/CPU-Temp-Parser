@@ -1,0 +1,119 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+plugins {
+    id "java"
+    id "application"
+    id "eclipse"
+
+    id "checkstyle"
+    id "com.github.spotbugs" version "4.7.0"
+    id "project-report"
+    id "jacoco"
+    id "pmd"
+}
+
+//mainClassName = "ParseTempsDriver"
+
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+	
+}
+
+mainClassName = "src.main.java.ParseTempsDriver"
+
+jar {
+    baseName = "ParseTemps"
+
+    manifest {
+        attributes(
+            'Main-Class': 'src.main.java.ParseTempsDriver'
+        )
+    }
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+}
+
+task deploy(dependsOn: [javadoc, check, jar]){
+}
+
+if (project.hasProperty("args")) {
+    ext.cmdargs = project.getProperty("args")
+} else { 
+    ext.cmdargs = " "
+}
+
+task cmdLineJavaExec(type: JavaExec) {
+    group = "Execution"
+    description = "Run the main class with JavaExecTask"
+    classpath = sourceSets.main.runtimeClasspath
+    main = "src.main.java.ParseTempsDriver"
+    args cmdargs.split()
+}
+
+//------------------------------------------------------------------------------
+// Analysis Tools
+//------------------------------------------------------------------------------
+
+// SpotBugs
+spotbugsMain {
+    ignoreFailures = true
+    effort = "max"
+    reportLevel = "medium"
+    reports {
+       xml.enabled = false
+       html.enabled = true
+    }
+}
+
+spotbugsTest.enabled = false
+// End SpotBugs config
+
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+jacocoTestReport {
+    reports {
+        html.enabled true
+        xml.enabled true
+        csv.enabled true
+    }
+}
+
+// Check Style Config
+checkstyle {
+    ignoreFailures = true
+    showViolations = false
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        html.destination project.file("build/reports/checkstyle/main.html")
+    }
+}
+checkstyleTest.enabled = false
+// End Checkstyle config
+
+pmd {
+    ignoreFailures = true
+    ruleSets = [
+        "category/java/bestpractices.xml",
+        "category/java/codestyle.xml",
+        "category/java/design.xml",
+        "category/java/errorprone.xml",
+        "category/java/performance.xml"
+    ]
+}
+
